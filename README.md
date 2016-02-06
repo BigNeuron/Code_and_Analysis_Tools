@@ -7,6 +7,6 @@ To access the source code of the neuron tracing algorithms, also check this page
 Various analysis and application tools are also documented as follows.
 
 ## Neuron morphology analysis (by Xiaoxiao Liu @ Allen Institute) (https://github.com/XiaoxiaoLiu/morphology_analysis)
-## NeuroM analysis (by Blue Brain Project team)
+## NeuroM analysis (by Blue Brain Project team) (https://github.com/BlueBrain/NeuroM)
 
 
