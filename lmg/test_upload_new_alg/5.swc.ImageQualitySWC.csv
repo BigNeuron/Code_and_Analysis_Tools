@@ -1,0 +1,2 @@
+Image_name,Channel,MinIntensity,MaxIntensity,MeanIntensity,MedianIntensity,MADIntensity,StdIntensity,PercentMinimal,PercentMaximal,ThresholdOtsu,SNR_mean,CNR_mean,SNR_otsu,CNR_otsu,FocusScore
+../../BigNeurongit/Data/gold166_wids_vols/1/1.v3dpbd,1,0,255,90.709992,60.000000,195.000000,84.021982,0.000017,0.000166,255.000000,7.237037,6.521130,3.985954,0.000000,77.827076

@@ -1,0 +1,1 @@
+devtools::install_github("rforge/rgl", subdir="pkg/rgl")

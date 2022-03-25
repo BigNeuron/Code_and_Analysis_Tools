@@ -1,0 +1,20 @@
+dataset,Institution,Model_organism,Age,Brain_region,Cell_type,Labeling_general,Labeling_acronym,Microscopy
+p_checked7_janelia_flylight_part1,Janelia - Flylight,Fruitfly,Adult,Many,Many,TG,TG-Gal4-GFP,Confocal
+p_checked6_janelia_flylight_part2,Janelia - Flylight,Fruitfly,Adult,Many,Many,TG,TG-Gal4-GFP,Confocal
+p_checked7_taiwan_flycirciut,Taiwan - Flycircuit,Fruitfly,Adult,Many,Many,TG,TG-Gal4-GFP,Confocal
+e_checked7_utokyo_fly,U Tokio,Fruitfly,,,,IHC,IHC-synaptotagmin,Confocal
+p_checked6_fruitfly_larvae_gmu,GMU,Fruitfly,Larvae,,Class I-IV,TG,TG-membrane-Factin-GFP,Confocal
+p_checked6_silkmoth_utokyo,U Tokio,Silkmoth,2–7 d after eclosion,,,IHC,IHC-synaptotagmin,Confocal
+e_checked6_zebrafish_larve_RGC_UW,UW,Zebrafish,Larvae,Retina,RGC,TG,TG-brn3c-MYFP,Confocal
+p_checked6_zebrafish_adult_RGC_UW,UW,Zebrafish,Adult,Retina,RGC,TG,TG-brn3c-MYFP,Confocal
+p_checked6_zebrafish_horizontal_cells_UW,UW,Zebrafish,,Retina,Horizontal,TG,TG-brn3c-MYFP,Confocal
+p_checked6_mouse_RGC_uw,UW,Mouse,P24,Retina,RGC,IHC,IHC-NF-ChAT,Confocal
+p_checked6_mouse_korea,KIST,Mouse,Adult,Hippocampal,CA1 pyramidal,TG,mGRASP,Confocal
+p_checked6_mouse_ugoettingen,UGoettingen,Mouse,,,,,,Confocal and Brightfield
+p_checked6_mouse_culturedcell_Cambridge_in_vivo_2_photon_PAGFP,UCambridge,Mouse,3 month,"auditory cortex, layer 2/3",excitatory neurons,TG,TG-PA-GFP,2-photon
+p_checked6_mouse_tufts,Allen Institute,Mouse,,,,,,Confocal
+p_checked6_human_allen_confocal,Allen Institute,Human,,,Pyramidal,LY,LY,Confocal
+p_checked6_human_allen_confocal_independent_trial2_haru,Allen Institute,Human,,,Pyramidal,LY,LY,Confocal
+p_checked6_human_culturedcell_Cambridge_in_vitro_confocal_GFP,UCambridge,Human-cultured,45 days after neuronal induction,NA,Excitatory neurons stem-cell derived,LV,LV-GFP,Confocal
+e_checked6_chick_uw,UW,Chicken,postnatal 4 to 10 days,nucleus laminaris in the auditory brainstem,Principal neurons,Alexa-488,Alexa-488,Confocal
+p_checked6_frog_scrippts,Scripps,Frog,st47-48,tectum,Tectal neurons,TG,ep-TG-Gal4-eGFP,Confocal

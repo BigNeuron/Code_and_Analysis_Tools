@@ -1,0 +1,53 @@
+library(shiny)
+library(plotly)
+library(shinycustomloader)
+shinyUI(pageWithSidebar(
+  headerPanel("Gold166 analysis"),
+  sidebarPanel(
+    selectInput("variablegroups",label = h5("Select for coloring"),"",selected="variablegroups"),
+    h5("Choose variables for PCA:"),
+    checkboxGroupInput("variablemorph", "Tree morphology","",selected="variablemorph"),
+    actionLink("selectall","Select All"),
+    checkboxGroupInput("variabledist", "Reconstruction quality","",selected="variabledist"),
+    actionLink("selectall2","Select All"),
+    checkboxGroupInput("variableiq", "Image quality","",selected="variableiq"),
+    actionLink("selectall3","Select All"),
+    width=2
+    #selectInput("variable",label = h5("Variables for PCA"),"",multiple=T)
+  ),
+  # fluidRow(
+  #   checkboxGroupInput("variablealg", "Choose algorithm(s)","",selected="variablealg",inline=TRUE),
+  #   actionLink("selectall4","Select All")
+  # ),
+  # sidebarPanel(
+  #   checkboxGroupInput("variable3", "Choose grouping for colors:",""),position=c('right')
+  #   #selectInput("variable",label = h5("Variables for PCA"),"",multiple=T)
+  # ),
+  
+  mainPanel(
+    
+    # Output: Tabset w/ plot, summary, and table ----
+    tabsetPanel(type = "tabs",
+                tabPanel("PCA", withLoader(plotlyOutput("PCA",height = "800px", width = "100%"))
+                         # checkboxGroupInput("variablealg", "Choose algorithm(s)","",selected="variablealg",inline=TRUE),
+                         # actionLink("selectall4","Select All")
+                         ),
+                tabPanel("t-SNE",  withLoader(plotlyOutput("tSNE",height = "800px", width = "100%"),type="text", 
+                                              loader = list(marquee("Please be patient, this can take up to 60 seconds"))),
+                         checkboxGroupInput("variablealg", "Choose algorithm(s)","",selected="variablealg",inline=TRUE),
+                         actionLink("selectall4","Select All")
+                         ),
+                tabPanel("Clustering", 
+                 plotOutput("Clustering",height = "800px", width = "100%"),
+                 checkboxGroupInput("variablealg", "Choose algorithm(s)","",selected="variablealg",inline=TRUE),
+                 actionLink("selectall4","Select All")
+                )
+                # checkboxGroupInput("variablealg", "Choose algorithm(s)","",selected="variablealg",inline=TRUE),
+                # actionLink("selectall4","Select All")
+    )
+  ))
+  # mainPanel(
+  #   #tableOutput("inputfile"),
+  #   plotlyOutput("PCA",height = "800px", width = "100%")
+  # )
+)
