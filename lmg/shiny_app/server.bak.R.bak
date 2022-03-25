@@ -1,0 +1,1190 @@
+library(shiny)
+library(ggbiplot)
+library(plotly)
+library(Rtsne)
+library(corrplot)
+library(heatmaply)
+library(ggpubr)
+library(nat)
+library(nat.nblast)
+library(dendroextras)
+library(dendextend)
+# library(magick)
+library(tiff)
+# library(Cairo)
+# library(plyr)
+# library(orca)
+# library(ggnewscale)
+
+shinyServer(function(input, output, session) {
+  upDataorig <- reactive({#if(is.null(input$file1))return(NULL) 
+    #inFile <- input$file1
+    #dat <- read.csv(inFile$datapath)
+    load('subsetdata.Rdata')
+    data <- my_data
+    load('groupsdf.Rdata')
+    ids <- sapply(strsplit(as.character(groupsdf$paths),'/'), "[", 8)
+    data <- data[ids!='9',]
+    return(data)
+  })
+  
+  values <- reactiveValues()
+  
+  upDatanrnlist <- reactive({
+    load('meta_nrnlist.Rdata')
+    return(df)
+  })
+  
+  # output$inputfile <- renderTable({
+  #   upDataorig()
+  # })
+  
+  # treeData <- reactive({
+  #   load("nrnlist.Rdata")
+  #   return(nrnlisttest)
+  # })
+  # anntreeData <- reactive({
+  #   load("annrnlist.Rdata")
+  #   return(annrnlist)
+  # })
+  
+  upDatagroups <- reactive({
+    load('groupsdf.Rdata')
+    groupsdf$algorithm[groupsdf$algorithm=="app2new1"] <- "app2"
+    groupsdf$algorithm[groupsdf$algorithm=="app2new2"] <- "app2"
+    groupsdf$algorithm[groupsdf$algorithm=="app2new3"] <- "app2"
+    groupsdf$algorithm[groupsdf$algorithm=="Advantra_updated"] <- "Advantra"
+    groupsdf$algorithm[groupsdf$algorithm=="neutube_updated"] <- "neutube"
+    groupsdf$algorithm[groupsdf$algorithm=="pyzh_updated"] <- "pyzh"
+    groupsdf$algorithm[groupsdf$algorithm=="LCMboost_updated"] <- "LCMboost"
+    groupsdf$algorithm[groupsdf$algorithm=="LCMboost_3"] <- "LCMboost"
+    groupsdf$algorithm[groupsdf$algorithm=="fastmarching_spanningtree_updated"] <- "fastmarching_spanningtree"
+    groupsdf$algorithm[groupsdf$algorithm=="axis_analyzer_updated"] <- "axis_analyzer"
+    groupsdf$algorithm[groupsdf$algorithm=="NeuronChaser_updated"] <- "NeuronChaser"
+    groupsdf$algorithm[groupsdf$algorithm=="meanshift_updated"] <- "meanshift"
+    groupsdf$algorithm[groupsdf$algorithm=="NeuroGPSTree_updated"] <- "NeuroGPSTree"
+    groupsdf$algorithm[groupsdf$algorithm=="ENT_updated"] <- "EnsembleNeuronTracerBasic"
+    
+    groupsdf$dataset <- substring(groupsdf$dataset,12)
+    
+    ids <- sapply(strsplit(as.character(groupsdf$paths),'/'), "[", 8)
+    groupsdf$ids <- ids
+    groupsdf <- groupsdf[ids!='9',]
+    
+    return(groupsdf)
+  })
+  
+  observe({
+    updateSelectInput(
+      session,
+      "variablegroups",
+      choices=c("dataset","group","algorithm"),
+      selected="dataset"
+    )
+    updateSelectInput(
+      session,
+      "variableclust",
+      choices=c("none","clusters_dend","clusters_IQ","clusters_both"),
+      selected="none"
+    )
+    updateSelectInput(
+      session,
+      "variableclust2",
+      choices=c("none","clusters_dend","clusters_IQ","clusters_both"),
+      selected="none"
+    )
+    updateSelectInput(
+      session,
+      "variableclust3",
+      choices=c("none","clusters_dend","clusters_IQ","clusters_both"),
+      selected="none"
+    )
+    
+    updateCheckboxGroupInput(
+      session,
+      "variablemorph",
+      choices=c("soma_surface","num_stems","num_bifurcations","num_branches","num_of_tips",
+                "overall_x_span","overall_y_span","overall_z_span","average_diameter",
+                "total_length","total_surface","total_volume","max_euclidean_distance",
+                "max_path_distance","max_branch_order","average_contraction",
+                "average_fragmentation","parent_daughter_ratio","bifurcation_angle_local",
+                "bifurcation_angle_remote","ave_R"),
+      # selected=names(upDataorig())[-c(1,3,4,11,12,21,23,27,33,34,36)]
+      selected=c("num_stems","num_of_tips","average_diameter","max_path_distance",
+                 "average_contraction","bifurcation_angle_remote")
+      # selected=names(upDataorig())[c(2,5,9,14,16,20)]#,22,28,29,30,35,38,40)]
+      #selected=names(upDataorig())[c(2,5,9,14,16,20,22,28,29,30,35,38,40)]
+    )
+    
+    updateCheckboxGroupInput(
+      session,
+      "variableiq",
+      choices=c("Correlation","FocusScore","LocalFocusScore","MADIntensity","MaxIntensity",
+                "MeanIntensity","MedianIntensity","MinIntensity","PercentMaximal",
+                "PercentMinimal","PowerLogLogSlope","StdIntensity","ThresholdOtsu",
+                "TotalArea","TotalIntensity"),
+      # choices=names(upDataorig()[29:43]),
+      # selected=names(upDataorig())[-c(1,3,4,11,12,21,23,27,33,34,36)]
+      selected=c("Correlation","FocusScore","MedianIntensity","PercentMinimal","StdIntensity")
+      # selected=names(upDataorig())[c(29,30,35,38,40)]
+      #selected=names(upDataorig())[c(2,5,9,14,16,20,22,28,29,30,35,38,40)]
+    )
+    
+    updateCheckboxGroupInput(
+      session,
+      "variabledist",
+      choices=c("entire-structure-average (from neuron 1 to 2)",
+                "entire-structure-average (from neuron 2 to 1)",      
+                "average of bi-directional entire-structure-averages",
+                "different-structure-average",                        
+                "percent of different-structure (from neuron 1 to 2)",
+                "percent of different-structure (from neuron 2 to 1)",
+                "percent of different-structure"),
+      # choices=names(upDataorig()[22:28]),
+      # selected=names(upDataorig())[-c(1,3,4,11,12,21,23,27,33,34,36)]
+      selected=c("entire-structure-average (from neuron 1 to 2)",
+                 "average of bi-directional entire-structure-averages",
+                 "percent of different-structure")
+      # selected=names(upDataorig())[c(22,24,28)]
+      #selected=names(upDataorig())[c(2,5,9,14,16,20,22,28,29,30,35,38,40)]
+    )
+    
+    updateSelectInput(
+      session,
+      "filtermetrics",
+      choices=names(upDataorig()[c(1:21,29:43,22:28)]),
+      # choices=c(input$variablemorph,input$variabledist,input$variableiq),
+      selected='PercentMinimal'#names(upDataorig())[2]
+    )
+    
+    updateCheckboxGroupInput(
+      session,
+      "variablealg",
+      choices=c("Advantra","Annotated","app1","app2","axis_analyzer","Consensus",                
+                "Cwlab_ver1","EnsembleNeuronTracerBasic","EnsembleNeuronTracerV2n",  
+                "EnsembleNeuronTracerV2s","fastmarching_spanningtree","LCMboost",                 
+                "meanshift","MOST","MST_Tracing","nctuTW","nctuTW_GD","NeuroGPSTree",             
+                "NeuronChaser","NeuroStalker","neutu_autotrace","neutube","pyzh","Rayshooting",              
+                "Rivulet","Rollerball","simple","smartTracing","snake","tubularity_model_S",       
+                "XY_3D_TreMap"),
+      selected=c("Advantra","Annotated","app1","app2","axis_analyzer","Consensus",                
+                 "Cwlab_ver1","EnsembleNeuronTracerBasic","EnsembleNeuronTracerV2n",  
+                 "EnsembleNeuronTracerV2s","fastmarching_spanningtree","LCMboost",                 
+                 "meanshift","MOST","MST_Tracing","nctuTW","nctuTW_GD","NeuroGPSTree",             
+                 "NeuronChaser","NeuroStalker","neutu_autotrace","neutube","pyzh","Rayshooting",              
+                 "Rivulet","Rollerball","simple","smartTracing","snake","tubularity_model_S",       
+                 "XY_3D_TreMap")
+    )
+    
+    updateCheckboxGroupInput(
+      session,
+      "variabledat",
+      choices=c("chick_uw","frog_scrippts","fruitfly_larvae_gmu","human_allen_confocal",                               
+                "human_culturedcell_Cambridge_in_vitro_confocal_GFP", 
+                "janelia_flylight_part1","janelia_flylight_part2",
+                "mouse_culturedcell_Cambridge_in_vivo_2_photon_PAGFP",
+                "mouse_korea","mouse_RGC_uw","mouse_tufts","silkmoth_utokyo",
+                "taiwan_flycirciut","utokyo_fly","zebrafish_adult_RGC_UW",
+                "zebrafish_horizontal_cells_UW","zebrafish_larve_RGC_UW"),
+      selected=c("fruitfly_larvae_gmu","human_allen_confocal",                               
+                 "janelia_flylight_part2",
+                 "mouse_RGC_uw",
+                 "taiwan_flycirciut")
+    )
+    
+  })
+  
+  observe({
+    updateSelectInput(
+      session,
+      "dendclust",
+      choices=1:7,#length(input$variabledat),
+      selected=1#length(input$variabledat)
+    )
+  })
+  
+  observe({
+    updateSelectInput(
+      session,
+      "distclust",
+      choices=1:7,#length(input$variabledat),
+      selected=1#length(input$variabledat)
+    )
+  })
+  
+  observeEvent(input$selectall,{
+    if (input$selectall%%2 == 0)
+    {
+      updateCheckboxGroupInput(
+        session,
+        "variablemorph",
+        choices=names(upDataorig()[1:21]),
+        selected=c()
+      )
+    }
+    else if (input$selectall%%2 == 1) 
+    {
+      updateCheckboxGroupInput(
+        session,
+        "variablemorph",
+        choices=names(upDataorig()[1:21]),
+        selected=names(upDataorig()[1:21])
+      )
+    }
+  })
+  observeEvent(input$selectall3,{
+    #########################################################
+    if (input$selectall3%%2 == 0)
+    {
+      updateCheckboxGroupInput(
+        session,
+        "variableiq",
+        choices=names(upDataorig()[29:43]),
+        selected=c()
+      )
+    }
+    else if (input$selectall3%%2 == 1)
+    {
+      updateCheckboxGroupInput(
+        session,
+        "variableiq",
+        choices=names(upDataorig()[29:43]),
+        selected=names(upDataorig()[29:43])
+      )
+    }
+  })
+  observeEvent(input$selectall2,{
+    ############################################################
+    if (input$selectall2%%2 == 0)
+    {
+      updateCheckboxGroupInput(
+        session,
+        "variabledist",
+        choices=names(upDataorig()[22:28]),
+        selected=c()
+      )
+    }
+    else if (input$selectall2%%2 == 1)
+    {
+      updateCheckboxGroupInput(
+        session,
+        "variabledist",
+        choices=names(upDataorig()[22:28]),
+        selected=names(upDataorig()[22:28])
+      )
+    }
+  })
+  observeEvent(input$selectall4,{
+    ############################################################
+    if (input$selectall4%%2 == 0)
+    {
+      updateCheckboxGroupInput(
+        session,
+        "variablealg",
+        choices=sort(unique(upDatagroups()[,3])),
+        selected=c()
+      )
+    }
+    else if (input$selectall4%%2 == 1)
+    {
+      updateCheckboxGroupInput(
+        session,
+        "variablealg",
+        choices=sort(unique(upDatagroups()[,3])),
+        selected=sort(unique(upDatagroups()[,3]))
+      )
+    }
+  })
+    
+  observeEvent(input$selectall5,{
+    ############################################################
+    if (input$selectall5%%2 == 0)
+    {
+      updateCheckboxGroupInput(
+        session,
+        "variabledat",
+        choices=sort(unique(upDatagroups()[,1])),
+        selected=c()
+      )
+    }
+    else if (input$selectall5%%2 == 1)
+    {
+      updateCheckboxGroupInput(
+        session,
+        "variabledat",
+        choices=sort(unique(upDatagroups()[,1])),
+        selected=sort(unique(upDatagroups()[,1]))
+      )
+    }
+  })
+  
+  ###############################################################
+  
+  
+  upData <- reactive({
+    dat <- upDataorig()
+    dat <- subset(upDataorig(),select = c(input$variablemorph,input$variabledist,input$variableiq))
+    filtdat <- dat[,which(names(dat) %in% input$filtermetrics)]
+    
+    # print(dat)
+    
+    # dat <- dat[input$range[1] <= filtdat*100/max(filtdat) &
+    #                 filtdat*100/max(filtdat) <= input$range[2],]
+    # dat <- c(upDataorig()[input$variablemorph,],upDataorig()[input$variabledist,],upDataorig()[input$variableiq,])
+    dat <- dat[(upDatagroups()[input$range[1] <= filtdat*100/max(filtdat) &
+                                 filtdat*100/max(filtdat) <= input$range[2],3] %in% input$variablealg) &
+                 (upDatagroups()[input$range[1] <= filtdat*100/max(filtdat) &
+                                   filtdat*100/max(filtdat) <= input$range[2],1] %in% input$variabledat),]
+    # dat <- dat[(upDatagroups()[,3] %in% input$variablealg &
+    #               upDatagroups()[,1] %in% input$variabledat),]
+    # 
+    # dat2 <- subset(dat,select = c(input$variablemorph,input$variabledist,input$variableiq))
+    
+    dat <- dat[,apply(dat, 2, var, na.rm=TRUE) != 0]
+    
+    return(dat)
+  })
+  
+  upDataIds <- reactive({
+    dat <- upDataorig()
+    dat <- subset(upDataorig(),select = c(input$variablemorph,input$variabledist,input$variableiq))
+    filtdat <- dat[,which(names(dat) %in% input$filtermetrics)]
+    filtdat <- as.numeric(filtdat)
+    
+    grps <- upDatagroups()[input$range[1] <= filtdat*100/max(filtdat) &
+                             filtdat*100/max(filtdat) <= input$range[2] & 
+                             upDatagroups()[,3] %in% input$variablealg &
+                             upDatagroups()[,1] %in% input$variabledat ,4]
+    
+    grps <- sapply(strsplit(as.character(grps),'/'), "[", 8)
+    # grps <- c("1","2")
+    return(grps)
+  })
+  
+  
+  observe({
+    updateSelectInput(
+      session,
+      "clustset",
+      choices=c('Dendr_Morph','Image_Qual','Both'),
+      selected='Dendr_Morph'
+    )
+  })
+  
+  observe({
+    if(input$clustset=='Dendr_Morph'){
+      updateSelectInput(
+        session,
+        "dendplot",
+        choices=subset(values$ids,values$memb_dend %in% input$dendclust),
+        selected=subset(values$ids,values$memb_dend %in% input$dendclust)[1]
+      )
+    }else if(input$clustset=='Image_Qual'){
+      updateSelectInput(
+        session,
+        "dendplot",
+        choices=subset(values$ids,values$memb_iq %in% input$dendclust),
+        selected=subset(values$ids,values$memb_iq %in% input$dendclust)[1]
+      )
+    }
+    else{
+      updateSelectInput(
+        session,
+        "dendplot",
+        choices=subset(values$ids,values$memb_both %in% input$dendclust),
+        selected=subset(values$ids,values$memb_both %in% input$dendclust)[1]
+      )
+    }
+  })
+
+  observe({
+    updateSelectInput(
+      session,
+      "recgroup",
+      choices=c('Consensus','auto','processed'),
+      selected='Consensus'
+    )
+  })
+  
+  observe({
+    updateSelectInput(
+      session,
+      "recgroup2",
+      choices=c('Auto','Processed'),
+      selected='Auto'
+    )
+  })
+  
+  observe({
+    updateSelectInput(
+      session,
+      "recalg",
+      choices=unique(upDatanrnlist()[upDatanrnlist()$ids %in% as.numeric(input$dendplot) & upDatanrnlist()$group %in% input$recgroup,]$alg),
+      selected=unique(upDatanrnlist()[upDatanrnlist()$ids %in% as.numeric(input$dendplot) & upDatanrnlist()$group %in% input$recgroup,]$alg)[1]
+    )
+  })
+  
+  
+  ###################
+  ###################
+  # output$PCA <- renderPlotly({
+  plotPCA <- reactive({
+    upData.pca <- prcomp(upData(), scale = TRUE)
+    
+    dat <- upDataorig()
+    # dat <- subset(upDataorig(),select = c(input$variablemorph,input$variabledist,input$variableiq))
+    # dat <- subset(dat,select = c(input$variablemorph,input$variabledist,input$variableiq))
+    filtdat <- dat[,which(names(dat) %in% input$filtermetrics)]
+    dat <- dat[input$range[1] <= filtdat*100/max(filtdat) &
+                 filtdat*100/max(filtdat) <= input$range[2],]
+    
+    groupsdf <- upDatagroups()[input$range[1] <= filtdat*100/max(filtdat) &
+                                         filtdat*100/max(filtdat) <= input$range[2] & 
+                                         upDatagroups()[,3] %in% input$variablealg &
+                                         upDatagroups()[,1] %in% input$variabledat ,]
+    
+    # if(input$variablegroups=='clusters_dend'){
+    #   dat <- upDataorig()
+    #   filtdat <- dat[,which(names(dat)==input$filtermetrics)]
+    #   dat <- dat[input$range[1] <= filtdat*100/max(filtdat) &
+    #                filtdat*100/max(filtdat) <= input$range[2],]
+    #   dat <- subset(upDataorig(),select = c(input$variablemorph))
+    #   
+    #   grps <- upDatagroups()[(upDatagroups()[input$range[1] <= filtdat*100/max(filtdat) &
+    #                                            filtdat*100/max(filtdat) <= input$range[2],3]%in%input$variablealg & 
+    #                             upDatagroups()[input$range[1] <= filtdat*100/max(filtdat) &
+    #                                              filtdat*100/max(filtdat) <= input$range[2],1] %in% input$variabledat),]
+    #   
+    #   cdat <- upData()
+    #   cdat <- subset(cdat,select = c(input$variablemorph))
+    #   cdat <- cdat[grps$algorithm=='Annotated',]
+    #   grps <- grps[grps$algorithm=='Annotated',]
+    #   grps$ids <-  sapply(strsplit(as.character(grps$paths),'/'),"[", 8)
+    #   rownames(cdat) <- paste0(grps$ids,'_',grps$dataset)
+    #   hclust <- hclust(dist(cdat),method="ward.D2")
+    #   memb <- cutree(hclust, k = length(unique(input$variabledat)))
+    #   idsclusts <- data.frame(ids=grps$ids,clusters_dend=as.factor(memb))
+    #   
+    #   groupsdf <- merge(groupsdf,idsclusts, by='ids')
+    # }
+    
+    colsv <- groupsdf[,input$variablegroups]
+    # colsv <- groupsdf[(groupsdf[input$range[1] <= filtdat*100/max(filtdat) &
+    #                               filtdat*100/max(filtdat) <= input$range[2],3]%in%input$variablealg & 
+    #                      groupsdf[input$range[1] <= filtdat*100/max(filtdat) &
+    #                                 filtdat*100/max(filtdat) <= input$range[2],1] %in% input$variabledat),
+    #                   input$variablegroups]
+    
+    # if(input$variableclust=='clusters_dend' | input$variableclust=='clusters_IQ' | input$variableclust=='clusters_both'){
+    #   upData.pca <- prcomp(upData(), scale = TRUE)
+    #   dat <- upDataorig()
+    #   # dat <- subset(upDataorig(),select = c(input$variablemorph,input$variabledist,input$variableiq))
+    #   # dat <- subset(dat,select = c(input$variablemorph,input$variabledist,input$variableiq))
+    #   filtdat <- dat[,which(names(dat) %in% input$filtermetrics)]
+    #   groupsdf <- upDatagroups()[input$range[1] <= filtdat*100/max(filtdat) &
+    #                                filtdat*100/max(filtdat) <= input$range[2] & 
+    #                                upDatagroups()[,3] %in% input$variablealg &
+    #                                upDatagroups()[,1] %in% input$variabledat ,]
+    #   
+    #   dat <- upDataorig()
+    #   filtdat <- dat[,which(names(dat) %in% input$filtermetrics)]
+    #   dat <- dat[input$range[1] <= filtdat*100/max(filtdat) &
+    #                filtdat*100/max(filtdat) <= input$range[2],]
+    #   if(input$variableclust=='clusters_dend'){
+    #     dat <- subset(upDataorig(),select = c(input$variablemorph))
+    #   }else if(input$variableclust=='clusters_IQ'){
+    #     dat <- subset(upDataorig(),select = c(input$variableiq))
+    #   }
+    #   else{
+    #     dat <- subset(upDataorig(),select = c(input$variablemorph,input$variableiq))
+    #   }
+    #   grps <- upDatagroups()[(upDatagroups()[input$range[1] <= filtdat*100/max(filtdat) &
+    #                                            filtdat*100/max(filtdat) <= input$range[2],3]%in%input$variablealg & 
+    #                             upDatagroups()[input$range[1] <= filtdat*100/max(filtdat) &
+    #                                              filtdat*100/max(filtdat) <= input$range[2],1] %in% input$variabledat),]
+    #   
+    #   cdat <- upData()
+    #   if(input$variableclust=='clusters_dend'){
+    #     cdat <- subset(cdat,select = c(input$variablemorph))
+    #   }else if(input$variableclust=='clusters_IQ'){
+    #     cdat <- subset(cdat,select = c(input$variableiq))
+    #   }
+    #   else{
+    #     cdat <- subset(cdat,select = c(input$variablemorph,input$variableiq))
+    #   }
+    #   cdat <- cdat[grps$algorithm=='Annotated',]
+    #   grps <- grps[grps$algorithm=='Annotated',]
+    #   grps$ids <-  sapply(strsplit(as.character(grps$paths),'/'),"[", 8)
+    #   rownames(cdat) <- paste0(grps$ids,'_',grps$dataset)
+    #   # print(cdat)
+    #   hclust <- hclust(dist(cdat),method="ward.D2")
+    #   dend <- colour_clusters(hclust, k=7, groupLabels=T)
+    #   memb <- cutree(dend, k = 7)
+    #   memb <- abs(memb-7-1)
+    #   # print(memb)
+    #   if(input$variableclust=='clusters_dend'){
+    #     idsclusts <- data.frame(ids=grps$ids,clusters_dend=memb)
+    #   }else if(input$variableclust=='clusters_IQ'){
+    #     idsclusts <- data.frame(ids=grps$ids,clusters_IQ=memb)
+    #   }
+    #   else{
+    #     idsclusts <- data.frame(ids=grps$ids,clusters_both=memb)
+    #   }
+    #   # print(idsclusts)
+    #   
+    #   groupsdf <- merge(groupsdf,idsclusts, by='ids')
+    #   colsp <- as.factor(as.numeric(as.factor(groupsdf[,input$variableclust])))
+    #   
+    #   # print(ggplotly(plotPCA()))
+    #   # Make data frame for plotting
+    #   scores = as.data.frame(upData.pca$x)
+    #   pca.df <- data.frame(PCA1 = scores$PC1, PCA2 = scores$PC2, clusters = colsp)
+    #   
+    #   # Find the hulls around our data for the different cell types
+    #   find_hull <- function(pca.df) pca.df[chull(pca.df$PCA1, pca.df$PCA2), ]
+    #   hulls <- ddply(pca.df, "clusters", find_hull)
+    #   
+    #   ggbiplot(upData.pca, obs.scale = 1, var.scale = 1,
+    #            ellipse = T,
+    #            alpha=0.3,
+    #            groups=colsv) +
+    #     theme_classic(base_family = 'Arial') +
+    #     theme(aspect.ratio=1) +
+    #     # scale_fill_brewer(palette = 'Set1') +
+    #     # scale_colour_brewer(palette = 'Set1') +
+    #     # new_scale("fill") +
+    #     # new_scale("color") +
+    #     geom_polygon(data=hulls,aes(x=PCA1, y=PCA2, fill = clusters, linetype=clusters), alpha = 0.2) +
+    #     scale_fill_brewer(palette = 'Set3') #+
+    #     # scale_color_brewer(palette = 'Set2')
+    # }
+    # else{
+    # print(
+      # ggplotly(
+        ggbiplot(upData.pca, obs.scale = 1, var.scale = 1,
+                 # varname.size = 4,
+                 # varname.adjust=50,
+                 ellipse = T,
+                 alpha=0.3,
+                 groups=colsv) +
+          # xlim(-5,10) + 
+          # ylim(-5,5) +
+          # geom_polygon
+          theme_classic() +
+          # theme_classic(base_family = 'Arial') +
+          theme(aspect.ratio=1) #+
+          # scale_fill_brewer(palette = 'Set1') +
+          # scale_colour_brewer(palette = 'Set1')
+        #geom_point(aes_string(color=upDatagroups()[,input$variablegroups],alpha=0.1)) 
+        # )
+      # )
+    # }
+  })
+  
+  output$PCA <- renderPlotly({
+    print(plotPCA())
+  })
+  
+  output$downloadPlot <- downloadHandler(
+    filename = function(){paste('PCA', '.pdf', sep = '')},
+    
+    content = function(file){
+      ggsave(file,width=10,height=7,device=cairo_pdf,plotPCA())
+    },
+    
+    contentType = "application/pdf"
+  )
+  
+  
+
+  ################
+  # output$tSNE <- renderPlotly({
+  plottSNE <-  reactive({
+    #upData.pca <- prcomp(upData(), scale = TRUE)
+    # colors = rainbow(length(unique(upDatagroups()[,input$variablegroups])))
+    # names(colors) = unique(upDatagroups()[,input$variablegroups])
+    
+    dat <- upDataorig()
+    # dat <- subset(upDataorig(),select = c(input$variablemorph,input$variabledist,input$variableiq))
+    filtdat <- dat[,which(names(dat) %in% input$filtermetrics)]
+    dat <- dat[input$range[1] <= filtdat*100/max(filtdat) &
+                 filtdat*100/max(filtdat) <= input$range[2],]
+    
+    tsne <- Rtsne(upData(), dims = 2, perplexity=30, verbose=TRUE, max_iter = 500, check_duplicates=FALSE, num_threads=24)
+    tsne_plot <- data.frame(x = tsne$Y[,1], y = tsne$Y[,2], col = upDatagroups()[
+       (upDatagroups()[input$range[1] <= filtdat*100/max(filtdat) &
+                         filtdat*100/max(filtdat) <= input$range[2],3]%in%input$variablealg & 
+          upDatagroups()[input$range[1] <= filtdat*100/max(filtdat) &
+                           filtdat*100/max(filtdat) <= input$range[2],1] %in% input$variabledat),input$variablegroups])
+    
+    colsv <- upDatagroups()[(upDatagroups()[input$range[1] <= filtdat*100/max(filtdat) &
+                                              filtdat*100/max(filtdat) <= input$range[2],3]%in%input$variablealg & 
+                               upDatagroups()[input$range[1] <= filtdat*100/max(filtdat) &
+                                                filtdat*100/max(filtdat) <= input$range[2],1] %in% input$variabledat),
+                            input$variablegroups]
+    
+    if(input$variableclust2=='clusters_dend' | input$variableclust2=='clusters_IQ' | input$variableclust2=='clusters_both'){
+      dat <- upDataorig()
+      # dat <- subset(upDataorig(),select = c(input$variablemorph,input$variabledist,input$variableiq))
+      # dat <- subset(dat,select = c(input$variablemorph,input$variabledist,input$variableiq))
+      filtdat <- dat[,which(names(dat) %in% input$filtermetrics)]
+      groupsdf <- upDatagroups()[input$range[1] <= filtdat*100/max(filtdat) &
+                                   filtdat*100/max(filtdat) <= input$range[2] & 
+                                   upDatagroups()[,3] %in% input$variablealg &
+                                   upDatagroups()[,1] %in% input$variabledat ,]
+      
+      dat <- upDataorig()
+      filtdat <- dat[,which(names(dat) %in% input$filtermetrics)]
+      dat <- dat[input$range[1] <= filtdat*100/max(filtdat) &
+                   filtdat*100/max(filtdat) <= input$range[2],]
+      if(input$variableclust2=='clusters_dend'){
+        dat <- subset(upDataorig(),select = c(input$variablemorph))
+      }else if(input$variableclust2=='clusters_IQ'){
+        dat <- subset(upDataorig(),select = c(input$variableiq))
+      }else{
+        dat <- subset(upDataorig(),select = c(input$variablemorph,input$variableiq))
+      }
+      grps <- upDatagroups()[(upDatagroups()[input$range[1] <= filtdat*100/max(filtdat) &
+                                               filtdat*100/max(filtdat) <= input$range[2],3]%in%input$variablealg & 
+                                upDatagroups()[input$range[1] <= filtdat*100/max(filtdat) &
+                                                 filtdat*100/max(filtdat) <= input$range[2],1] %in% input$variabledat),]
+      
+      cdat <- upData()
+      if(input$variableclust2=='clusters_dend'){
+        cdat <- subset(cdat,select = c(input$variablemorph))
+      }else if(input$variableclust2=='clusters_IQ'){
+        cdat <- subset(cdat,select = c(input$variableiq))
+      }else{
+        cdat <- subset(cdat,select = c(input$variablemorph,input$variableiq))
+      }
+      cdat <- cdat[grps$algorithm=='Annotated',]
+      grps <- grps[grps$algorithm=='Annotated',]
+      grps$ids <-  sapply(strsplit(as.character(grps$paths),'/'),"[", 8)
+      rownames(cdat) <- paste0(grps$ids,'_',grps$dataset)
+      # print(cdat)
+      hclust <- hclust(dist(cdat),method="ward.D2")
+      dend <- colour_clusters(hclust, k=7, groupLabels=T)
+      memb <- cutree(dend, k = 7)
+      memb <- abs(memb-7-1)
+      # print(memb)
+      if(input$variableclust2=='clusters_dend'){
+        idsclusts <- data.frame(ids=grps$ids,clusters_dend=memb)
+      }else if(input$variableclust2=='clusters_IQ'){
+        idsclusts <- data.frame(ids=grps$ids,clusters_IQ=memb)
+      }else{
+        idsclusts <- data.frame(ids=grps$ids,clusters_both=memb)
+      }
+      # print(idsclusts)
+      
+      groupsdf <- merge(groupsdf,idsclusts, by='ids')
+      colsp <- as.factor(as.numeric(as.factor(groupsdf[,input$variableclust2])))
+      
+      # print(ggplotly(plotPCA()))
+      # Make data frame for plotting
+      print(tsne_plot$x)
+      print(tsne_plot$y)
+      print(colsp)
+      pca.df <- data.frame(PCA1 = tsne_plot$x, PCA2 = tsne_plot$y, clusters = colsp)
+      print(pca.df)
+      
+      # Find the hulls around our data for the different cell types
+      find_hull <- function(pca.df) pca.df[chull(pca.df$PCA1, pca.df$PCA2), ]
+      hulls <- ddply(pca.df, "clusters", find_hull)
+      
+      ggplot(tsne_plot) + geom_point(aes(x=x, y=y, color=colsv)) +
+        theme_classic(base_family = 'Arial') +
+        theme(aspect.ratio=1) +
+        # scale_fill_brewer(palette = 'Set1') +
+        # scale_colour_brewer(palette = 'Set1') +
+        # new_scale("fill") +
+        # new_scale("color") +
+        geom_polygon(data=hulls,aes(x=PCA1, y=PCA2, fill = clusters, linetype=clusters), alpha = 0.2) +
+        scale_fill_brewer(palette = 'Set3') #+
+      # scale_color_brewer(palette = 'Set2')
+    }
+    else{
+    # print(
+      # ggplotly(
+        ggplot(tsne_plot) + geom_point(aes(x=x, y=y, color=colsv)) +
+          #xlim(-.03,.025) +
+          #ylim(-0.05,0.05) +
+          # theme_minimal()
+          theme_classic() +
+          theme(aspect.ratio=1)
+        #geom_point(aes_string(color=upDatagroups()[,input$variablegroups],alpha=0.1)) 
+      # )
+    # )
+    }
+  })
+
+  output$tSNE <- renderPlotly({
+    print(ggplotly(plottSNE()))
+  })
+  
+  output$downloadPlot2 <- downloadHandler(
+    filename = function(){paste('tSNE', '.pdf', sep = '')},
+    
+    content = function(file){
+      ggsave(file,width=10,height=7,plottSNE())
+    },
+    
+    contentType = "application/pdf"
+  )
+  
+  ######################
+  # output$Clustering <- renderPlotly({
+  plotClust <- reactive({
+    cor.test.p <- function(x){
+      FUN <- function(x, y) cor.test(x, y)[["p.value"]]
+      z <- outer(
+        colnames(x), 
+        colnames(x), 
+        Vectorize(function(i,j) FUN(x[,i], x[,j]))
+      )
+      dimnames(z) <- list(colnames(x), colnames(x))
+      z
+    }
+    
+    dat <- upDataorig()
+    # dat <- subset(upDataorig(),select = c(input$variablemorph,input$variabledist,input$variableiq))
+    filtdat <- dat[,which(names(dat) %in% input$filtermetrics)]
+    dat <- dat[input$range[1] <= filtdat*100/max(filtdat) &
+                 filtdat*100/max(filtdat) <= input$range[2],]
+    
+    grps <- upDatagroups()[(upDatagroups()[input$range[1] <= filtdat*100/max(filtdat) &
+                                             filtdat*100/max(filtdat) <= input$range[2],3]%in%input$variablealg & 
+                               upDatagroups()[input$range[1] <= filtdat*100/max(filtdat) &
+                                                filtdat*100/max(filtdat) <= input$range[2],1] %in% input$variabledat),]
+    
+    # grps <- upDatagroups()[(upDatagroups()[,3] %in% input$variablealg & 
+                              # upDatagroups()[,1] %in% input$variabledat),]
+    
+    # print(as.numeric(as.factor(data$dataset)))
+    # print(as.numeric(data$group))
+    # print(as.numeric(data$algorithm))
+    
+    data <- upData()
+    # data <- cbind(upData(),grps[,1:3])
+    # 
+    # data$dataset <- as.numeric(as.factor(data$dataset))
+    # data$group <- as.numeric(data$group)
+    # data$algorithm <- as.numeric(data$algorithm)c
+    
+    # spdata <- cbind(upData(),grps[,1:3])
+    # spdata <- subset(spdata,spdata$algorithm == 'Consensus')
+    # spdata <- plyr::rename(spdata,c('percent of different-structure'='percent_of_different_structure'))
+    # # sp <- ggscatter(spdata, x = "Correlation", y = 'percent_of_different_structure',
+    # #                 color = "dataset", palette = "jco",
+    # #                 add = "reg.line", conf.int = TRUE)
+    # # sp + stat_cor(aes(color = dataset), label.x = 3) + xlim(0,1)
+    # ggscatter(spdata, x = "Correlation", y = "percent_of_different_structure", add = "reg.line") +
+    #   stat_cor(
+    #     aes(label = paste(..rr.label.., ..p.label.., sep = "~`,`~")),
+    #     label.x = .5
+    #   ) + xlim(0,1)
+    # ggsave('spcorr_percent.pdf',width=10,height=6,device=cairo_pdf)
+    # 
+    # ggscatter(spdata, x = 'parent_daughter_ratio', y = "percent_of_different_structure", add = "reg.line") +
+    #   stat_cor(
+    #     aes(label = paste(..rr.label.., ..p.label.., sep = "~`,`~")),
+    #     label.x = 0.85
+    #   )
+    # ggsave('spcorr_parentdaughterratio.pdf',width=10,height=6,device=cairo_pdf)
+    # 
+    # ggscatter(spdata, x = "average_diameter", y = "percent_of_different_structure", add = "reg.line") +
+    #   stat_cor(
+    #     aes(label = paste(..rr.label.., ..p.label.., sep = "~`,`~")),
+    #     label.x = 1.2
+    #   ) + xlim(0.5,2)
+    # ggsave('spcorr_diameter.pdf',width=10,height=6,device=cairo_pdf)
+    
+    M <- cor(data)
+    p <- cor.test.p(data)
+    # M <- cor(upData())
+    # p <- cor.test.p(upData())
+    # print(
+      # ggplotly(
+        heatmaply_cor(M,
+                      # node_type = "scatter",
+                      point_size_mat = -log10(p), 
+                      point_size_name = "-log10(p-value)",
+                      label_names = c("x", "y", "Correlation"),
+                      file='Clustering.pdf',
+                      height=1300,
+                      width=1300
+        )
+      # )
+    # )
+    # corrplot(M, tl.cex=1.5) +
+      # theme_classic()
+  })
+  
+  output$Clustering <- renderPlotly({
+    print(ggplotly(plotClust()))
+  })
+  
+  output$downloadPlot3 <- downloadHandler(
+    filename = function(){paste('Clustering', '.pdf', sep = '')},
+    
+    # content = function(file){
+    #   orca(plotClust(),file=file,width=10,height=7)
+    # },
+    content <- function(file) {
+      file.copy("Clustering.pdf", file)
+    },
+    
+    contentType = "application/pdf"
+  )
+  
+  # output$DendClust <- renderPlot({
+  plotDendClust <- reactive({
+    ########## Clustering nblast
+    # # annrnlist <- anntreeData() 
+    # load('dftotgrp.Rdata')
+    # # nb <- nblast_allbyall(anntreeData())
+    # # nb <- nblast_allbyall(annrnlist)
+    # # save(nb,file="nb.Rdata")
+    # load('nb.Rdata')
+    # 
+    # hclust <- nhclust(scoremat = nb)
+    # # plot(hclust)
+    # dend <- colour_clusters(hclust, k=6, groupLabels=T)
+    # nmannrnlist <- subset(annrnlist,rval="names")
+    # labels(dend)=sapply(strsplit(nmannrnlist,'/'), "[", 8)
+    # dfdt <- data.frame(ids=dftotgrp$ids,dataset=dftotgrp$dataset)
+    # dfdt <- dfdt[!duplicated(dfdt), ]
+    # labels(dend)=paste0(labels(dend),'_',dfdt$dataset)
+    # par(cex=1, mar=c(1, 1, 1, 30))
+    # plot(dend,horiz=T)
+    
+    ######## Clustering BLASTneuron
+    dat <- upDataorig()
+    filtdat <- dat[,which(names(dat) %in% input$filtermetrics)]
+    dat <- dat[input$range[1] <= filtdat*100/max(filtdat) &
+                 filtdat*100/max(filtdat) <= input$range[2],]
+    dat <- subset(upDataorig(),select = c(input$variablemorph))
+    
+    grps <- upDatagroups()[(upDatagroups()[input$range[1] <= filtdat*100/max(filtdat) &
+                                             filtdat*100/max(filtdat) <= input$range[2],3]%in%input$variablealg & 
+                              upDatagroups()[input$range[1] <= filtdat*100/max(filtdat) &
+                                               filtdat*100/max(filtdat) <= input$range[2],1] %in% input$variabledat),]
+    
+    cdat <- upData()
+    cdat <- subset(cdat,select = c(input$variablemorph))
+    cdat <- cdat[grps$algorithm=='Annotated',]
+    grps <- grps[grps$algorithm=='Annotated',]
+    grps$ids <-  sapply(strsplit(as.character(grps$paths),'/'),"[", 8)
+    rownames(cdat) <- paste0(grps$ids,'_',grps$dataset)
+    hclust <- hclust(dist(cdat),method="ward.D2")
+    dend <- colour_clusters(hclust, k=7, groupLabels=T)
+    memb <- cutree(dend, k = 7)
+    values$ids <- grps$ids
+    values$memb_dend <- abs(memb-7-1)
+    # USArrests[memb == k,]
+    # labels(dend)=grps[grps$algorithm=="Annotated",]$dataset
+    
+    par(cex=1, mar=c(3, 1, 1, 20))
+    ggsave("Clustering_dend.pdf",plot(rev(dend),main="Hier. Clustering - Tree Morph. metrics",horiz=T))
+    plot(rev(dend),main="Hier. Clustering - Tree Morph. metrics",horiz=T)
+  })
+  
+  output$DendClust <- renderPlot({
+    print(plotDendClust())
+  })
+  
+  output$downloadPlot4 <- downloadHandler(
+    filename = function(){paste('Clustering_dend', '.pdf', sep = '')},
+    
+    content = function(file){
+      # ggsave(file,width=10,height=7,device=cairo_pdf,plotDendClust())
+      file.copy("Clustering_dend.pdf", file)
+    },
+    
+    contentType = "application/pdf"
+  )
+  
+  # output$DendIm <- renderPlot({
+  plotImClust <- reactive({
+    ######## Clustering Images
+    dat <- upDataorig()
+    filtdat <- dat[,which(names(dat) %in% input$filtermetrics)]
+    dat <- dat[input$range[1] <= filtdat*100/max(filtdat) &
+                 filtdat*100/max(filtdat) <= input$range[2],]
+    dat <- subset(upDataorig(),select = c(input$variableiq))
+    
+    grps <- upDatagroups()[(upDatagroups()[input$range[1] <= filtdat*100/max(filtdat) &
+                                             filtdat*100/max(filtdat) <= input$range[2],3]%in%input$variablealg & 
+                              upDatagroups()[input$range[1] <= filtdat*100/max(filtdat) &
+                                               filtdat*100/max(filtdat) <= input$range[2],1] %in% input$variabledat),]
+    
+    cdat <- upData()
+    cdat <- subset(cdat,select = c(input$variableiq))
+    cdat <- cdat[grps$algorithm=='Annotated',]
+    grps <- grps[grps$algorithm=='Annotated',]
+    grps$ids <-  sapply(strsplit(as.character(grps$paths),'/'),"[", 8)
+    rownames(cdat) <- paste0(grps$ids,'_',grps$dataset)
+    # print(rownames(cdat))
+    hclust <- hclust(dist(cdat),method="ward.D2")
+    # saveRDS(hclust,"hclust.Rdata")
+    # saveRDS(cdat,"cdat.Rdata")
+    # saveRDS(grps$ids,"cids.Rdata")
+    dend <- colour_clusters(hclust, k=7, groupLabels=T)
+    memb <- cutree(dend, k=7)
+    values$memb_iq <- abs(memb-7-1)
+    # cdat[memb == k, , drop = FALSE]
+    # dend <- colour_clusters(hclust, k=7, groupLabels=T)
+    # labels(dend)=grps[grps$algorithm=="Annotated",]$dataset
+    
+    par(cex=1, mar=c(3, 1, 1, 20))
+    ggsave("Clustering_IQ.pdf",plot(rev(dend),main="Hier. Clustering - Im. Qual. metrics",horiz=T))
+    plot(rev(dend),main="Hier. Clustering - Im. Qual. metrics",horiz=T)
+  })
+  
+  output$DendIm <- renderPlot({
+    print(plotImClust())
+  })
+  
+  output$downloadPlot5 <- downloadHandler(
+    filename = function(){paste('Clustering_IQ', '.pdf', sep = '')},
+    
+    content = function(file){
+      # ggsave(file,width=10,height=7,device=cairo_pdf,print(plotImClust()))
+      file.copy("Clustering_IQ.pdf", file)
+    },
+    
+    contentType = "application/pdf"
+  )
+  
+  
+  plotBothClust <- reactive({
+    ######## Clustering Images
+    dat <- upDataorig()
+    filtdat <- dat[,which(names(dat) %in% input$filtermetrics)]
+    dat <- dat[input$range[1] <= filtdat*100/max(filtdat) &
+                 filtdat*100/max(filtdat) <= input$range[2],]
+    dat <- subset(upDataorig(),select = c(input$variableiq))
+    
+    grps <- upDatagroups()[(upDatagroups()[input$range[1] <= filtdat*100/max(filtdat) &
+                                             filtdat*100/max(filtdat) <= input$range[2],3]%in%input$variablealg & 
+                              upDatagroups()[input$range[1] <= filtdat*100/max(filtdat) &
+                                               filtdat*100/max(filtdat) <= input$range[2],1] %in% input$variabledat),]
+    
+    cdat <- upData()
+    cdat <- subset(cdat,select = c(input$variablemorph,input$variableiq))
+    cdat <- cdat[grps$algorithm=='Annotated',]
+    grps <- grps[grps$algorithm=='Annotated',]
+    grps$ids <-  sapply(strsplit(as.character(grps$paths),'/'),"[", 8)
+    rownames(cdat) <- paste0(grps$ids,'_',grps$dataset)
+    # print(rownames(cdat))
+    hclust <- hclust(dist(cdat),method="ward.D2")
+    # saveRDS(hclust,"hclust.Rdata")
+    # saveRDS(cdat,"cdat.Rdata")
+    # saveRDS(grps$ids,"cids.Rdata")
+    # cdat[memb == k, , drop = FALSE]
+    # dend <- colour_clusters(hclust, k=length(unique(input$variabledat)), groupLabels=T)
+    dend <- colour_clusters(hclust, k=7, groupLabels=T)
+    # labels(dend)=grps[grps$algorithm=="Annotated",]$dataset
+    memb <- cutree(dend, k=7)#length(unique(input$variabledat)))
+    values$memb_both <- abs(memb-7-1)
+    
+    par(cex=1, mar=c(3, 1, 1, 20))
+    ggsave("Clustering_Both.pdf",plot(rev(dend),main="Hier. Clustering - Both metrics",horiz=T))
+    plot(rev(dend),main="Hier. Clustering - Both metrics",horiz=T)
+  })
+  
+  output$DendBoth <- renderPlot({
+    print(plotBothClust())
+  })
+  
+  output$downloadPlot7 <- downloadHandler(
+    filename = function(){paste('Clustering_Both', '.pdf', sep = '')},
+    
+    content = function(file){
+      # ggsave(file,width=10,height=7,device=cairo_pdf,print(plotImClust()))
+      file.copy("Clustering_Both.pdf", file)
+    },
+    
+    contentType = "application/pdf"
+  )
+  
+  output$DendPlot <- renderPlot({
+    load('dftotgrp.Rdata')
+    load('nb.Rdata')
+    load('annrnlist.Rdata')
+    
+    nmannrnlist <- subset(annrnlist,rval="names")
+    annids <- sapply(strsplit(nmannrnlist,'/'), "[", 8)
+    
+    plot(annrnlist[annids %in% input$dendplot],main='')
+  })
+  
+  output$DendPlot2 <- renderPlot({
+    load(file.path("nrnlists",paste0("nrnlist_",as.character(input$dendplot),".rdata")))
+    
+    nmnrnlist <- subset(nrnlist,rval="names")
+    annids <- sapply(strsplit(nmnrnlist,'/'), "[", 8)
+    annalg <- sapply(strsplit(nmnrnlist,'/'), "[", 10)
+    annalg <- sapply(strsplit(annalg,'[.]'), "[", 2)
+    annalg <- substring(annalg,8)
+    anngroup <- sapply(strsplit(nmnrnlist,'/'), "[", 9)
+    annalg[anngroup=="consensus.eswc_resampled.swc"] <- "Consensus"
+    anngroup[anngroup=="consensus.eswc_resampled.swc"] <- "Consensus"
+    anngroup[anngroup=="auto_recons"] <- "auto"
+    anngroup[anngroup!="auto"&anngroup!="processed"&anngroup!="Consensus"] <- "Annotated"
+    annalg[is.na(annalg)] <- "Annotated"
+    annalg <- gsub(glob2rx('x*_y*_z*_*'),'',annalg)
+    
+    plot(nrnlist[annids %in% input$dendplot & anngroup %in% input$recgroup & annalg %in% input$recalg],main='')
+  })
+    
+  output$ImPlot <- renderPlot({
+    # im <- load(paste0('gold166_wids/',input$dendplot,'/',input$dendplot,'.tif'))
+    # filename <- normalizePath(file.path('./gold166_wids',
+    #                                     paste(as.character(input$dendplot),'/', as.character(input$dendplot), '.tif', sep='')))
+    filename <- file.path('./gold166_wids',
+                          paste(as.character(input$dendplot),'/', as.character(input$dendplot), '.tif', sep=''))
+    # print(filename)
+    rotate <- function(x) t(apply(x, 2, rev))
+    
+    im <- readTIFF(filename)
+    im <- rotate(im)
+    x <- 1:nrow(im)
+    y <- 1:ncol(im)
+    image(x,y,im,col=gray.colors(255))
+  })
+  #   print(filename)
+  #   list(src = filename,
+  #        width = 400,
+  #        height = 300,
+  #        contentType = "image/tiff")
+  # }, deleteFile = FALSE)
+  
+  ########################
+  # output$Distances <- renderPlotly({
+  plotDist <- reactive({
+    
+    dat <- upDataorig()
+    dat <- subset(upDataorig(),select = c(input$variablemorph,input$variabledist,input$variableiq))
+    filtdat <- dat[,which(names(dat) %in% input$filtermetrics)]
+    # subset(upDataorig(),select = c(input$variablemorph,input$variabledist,input$variableiq))[,which(names(dat)==input$filtermetrics)]
+    dat <- dat[input$range[1] <= filtdat*100/max(filtdat) &
+                 filtdat*100/max(filtdat) <= input$range[2],]
+    
+    grps <- upDatagroups()[(upDatagroups()[input$range[1] <= filtdat*100/max(filtdat) &
+                                             filtdat*100/max(filtdat) <= input$range[2],3] %in% input$variablealg) &
+                              (upDatagroups()[input$range[1] <= filtdat*100/max(filtdat) &
+                                               filtdat*100/max(filtdat) <= input$range[2],1] %in% input$variabledat),]
+    # grps <- upDatagroups()[(upDatagroups()[,3] %in% input$variablealg & upDatagroups()[,1] %in% input$variabledat),]
+    
+    pdata <- cbind(upData(),grps)
+    # pdata <- arrange(pdata,pdata[,which(names(pdata)=='average of bi-directional entire-structure-averages')])
+    pdata$dists <- pdata[,which(names(pdata)=='average of bi-directional entire-structure-averages')]
+    
+    # pdata <- subset(pdata,pdata$algorithm!='Annotated')
+    pdata <- subset(pdata,pdata$algorithm=='Consensus' | pdata$group==input$recgroup2)
+    
+    if(input$variableclust3=='clusters_dend' | input$variableclust3=='clusters_IQ' | input$variableclust3=='clusters_both'){
+      dat <- upDataorig()
+      # dat <- subset(upDataorig(),select = c(input$variablemorph,input$variabledist,input$variableiq))
+      # dat <- subset(dat,select = c(input$variablemorph,input$variabledist,input$variableiq))
+      # filtdat <- dat[,which(names(dat) %in% input$filtermetrics)]
+      # groupsdf <- upDatagroups()[input$range[1] <= filtdat*100/max(filtdat) &
+      #                              filtdat*100/max(filtdat) <= input$range[2] & 
+      #                              upDatagroups()[,3] %in% input$variablealg &
+      #                              upDatagroups()[,1] %in% input$variabledat ,]
+      
+      dat <- upDataorig()
+      filtdat <- dat[,which(names(dat) %in% input$filtermetrics)]
+      dat <- dat[input$range[1] <= filtdat*100/max(filtdat) &
+                   filtdat*100/max(filtdat) <= input$range[2],]
+      if(input$variableclust2=='clusters_dend'){
+        dat <- subset(upDataorig(),select = c(input$variablemorph))
+      }else if(input$variableclust2=='clusters_IQ'){
+        dat <- subset(upDataorig(),select = c(input$variableiq))
+      }else{
+        dat <- subset(upDataorig(),select = c(input$variablemorph,input$variableiq))
+      }
+      grps <- upDatagroups()[(upDatagroups()[input$range[1] <= filtdat*100/max(filtdat) &
+                                               filtdat*100/max(filtdat) <= input$range[2],3]%in%input$variablealg & 
+                                upDatagroups()[input$range[1] <= filtdat*100/max(filtdat) &
+                                                 filtdat*100/max(filtdat) <= input$range[2],1] %in% input$variabledat),]
+      
+      cdat <- upData()
+      if(input$variableclust2=='clusters_dend'){
+        cdat <- subset(cdat,select = c(input$variablemorph))
+      }else if(input$variableclust2=='clusters_IQ'){
+        cdat <- subset(cdat,select = c(input$variableiq))
+      }else{
+        cdat <- subset(cdat,select = c(input$variablemorph,input$variableiq))
+      }
+      cdat <- cdat[grps$algorithm=='Annotated',]
+      grps <- grps[grps$algorithm=='Annotated',]
+      grps$ids <-  sapply(strsplit(as.character(grps$paths),'/'),"[", 8)
+      rownames(cdat) <- paste0(grps$ids,'_',grps$dataset)
+      # print(cdat)
+      hclust <- hclust(dist(cdat),method="ward.D2")
+      dend <- colour_clusters(hclust, k=7, groupLabels=T)
+      memb <- cutree(dend, k = 7)#length(unique(input$variabledat)))
+      memb <- abs(memb-7-1)
+      # print(memb)
+      idsclusts <- data.frame(ids=grps$ids,clusters=memb)
+      # if(input$variableclust2=='clusters_dend'){
+      #   idsclusts <- data.frame(ids=grps$ids,clusters_dend=memb)
+      # }else if(input$variableclust2=='clusters_IQ'){
+      #   idsclusts <- data.frame(ids=grps$ids,clusters_IQ=memb)
+      # }else{
+      #   idsclusts <- data.frame(ids=grps$ids,clusters_both=memb)
+      # }
+      
+      pdata <- subset(pdata,pdata$ids %in% idsclusts$ids[idsclusts$clusters %in% as.numeric(input$distclust)])
+    }
+    
+    npdata <-  data.frame(algorithm=pdata$algorithm)
+    npdata$N <- NULL
+    for(i in 1:length(pdata$algorithm)){
+      npdata$N[i] <- sum(pdata$algorithm %in% pdata$algorithm[i])
+    }
+    # aggregate(pdata$dists, list(algorithm = pdata$algorithm), length)
+    npdata$lab <- paste0(pdata$algorithm,' (N=',npdata$N,')')
+    npdata$dists <-NULL
+    pdata <-  merge(pdata,npdata,by='algorithm')
+    pdata$algorithm <- pdata$lab
+
+    ppdata <- aggregate(pdata$dists, list(pdata$algorithm), mean)
+    
+    
+    # ggplotly(
+      # ggplot(pdata,aes(reorder(algorithm,pdata[,which(names(pdata)=='average of bi-directional entire-structure-averages')]),
+      #                  weight=pdata[,which(names(pdata)=='average of bi-directional entire-structure-averages')])) +
+      #   geom_bar(aes(fill=algorithm),
+      #            width=0.8,position = position_dodge()) +
+      #   coord_flip() +
+      #   geom_errorbar()
+      ggbarplot(pdata, x = "algorithm", y = "dists",
+                # order = as.character(unique(arrange(pdata,pdata$dists)$algorithm)),
+                order = arrange(ppdata,desc(ppdata$x))$Group.1,
+                orientation = "horiz",
+                # order = reorder(algorithm,dists),
+                fill = "algorithm",
+                ylab= 'average of bi-directional entire-structure-average distances',
+                add = "mean_se")
+    # )
+  })
+  
+  output$Distances <- renderPlotly({
+    print(plotDist())
+  })
+  
+  output$downloadPlot6 <- downloadHandler(
+    filename = function(){paste('Distances', '.pdf', sep = '')},
+    
+    content = function(file){
+      ggsave(file,width=10,height=15,device=cairo_pdf,ggpar(plotDist(),legend="right"))
+    },
+    
+    contentType = "application/pdf"
+  )
+})
+
+# library(rsconnect)
+# rsconnect::deployApp('./',appName = 'BigNeuron_Gold166')

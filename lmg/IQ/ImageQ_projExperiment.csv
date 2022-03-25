@@ -1,0 +1,104 @@
+Key,Value
+CellProfiler_Version,3.1.9
+ChannelType_DNA,Grayscale
+ImageQuality_ThresholdMeanOtsu_DNA_2W,0.049900107719734715
+ImageQuality_ThresholdMedianOtsu_DNA_2W,0.03474360080748012
+ImageQuality_ThresholdStdOtsu_DNA_2W,0.06096174454657631
+ImageSet_Zip_Dictionary,PD94bWwgdmVyc2lvbj0iMS4wIiBlbmNvZGluZz0iVVRGLTgiPz48T01FIHhtbG5zPSJodHRwOi8vd3d3Lm9wZW5taWNyb3Njb3B5Lm9yZy9TY2hlbWFzL09NRS8yMDE2LTA2Ij48SW1hZ2UgSUQ9IkROQSI+PFBpeGVscyBEaW1lbnNpb25PcmRlcj0iWFlDWlQiIElEPSJQaXhlbHM6RE5BIiBTaXplVD0iMSIgU2l6ZVg9IjEiIFNpemVZPSIxIj48VGlmZkRhdGEgRmlyc3RDPSIwIiBGaXJzdFQ9IjAiIEZpcnN0Wj0iMCIgSUZEPSIwIiBQbGFuZUNvdW50PSIxIj48VVVJRCBGaWxlTmFtZT0iZmlsZTovLy9GOi9iaWduZXVyb24vQmlnTmV1cm9uZ2l0L0RhdGEvZ29sZDE2Nl93aWRzLzE+PGZlIFRoZUM9IjAiIFRoZVQ9IjAiWj0iMCIvPjwvUHg+PC9tYU88P3htbCB2ZXJzaW9uPSIxLjAiIGVuY29kaW5nPSJVVEYtOCI/PjxPTUUgeG1sbnM9Imh0dHA6Ly93d3cub3Blbm1pY3Jvc2NvcHkub3JnL1NjaGVtYXMvT01FLzIwMTYtMDYiPjxJbWFnZSBJRD0iRE5BIj48UGl4ZWxzIERpbWVuc2lvbk9yZGVyPSJYWUNaVCIgSUQ9IlBpeGVsczpETkEiIFNpemVUPSIxIiBTaXplWD0iMSIgU2l6ZVk9IjEiPjxUaWZmRGF0YSBGaXJzdEM9IjAiIEZpcnN0VD0iMCIgRmlyc3RaPSIwIiBJRkQ9IjAiIFBsYW5lQ291bnQ9IjEiPjxVVUlEIEZpbGVOYW1lPSJmaWxlOi8vL0Y6L2JpZ25ldXJvbi9CaWdOZXVyb25naXQvRGF0YS9nb2xkMTY2X3dpZHMvLzEzNzw/eG1sIHZlcnNpb249IjEuMCIgZW5jb2Rpbmc9IlVURi04Ij8+PE9NRSB4bWxucz0iaHR0cDovL3d3dy5vcGVubWljcm9zY29weS5vcmcvU2NoZW1hcy9PTUUvMjAxNi0wNiI+PEltYWdlIElEPSJETkEiPjxQaXhlbHMgRGltZW5zaW9uT3JkZXI9IlhZQ1pUIiBJRD0iUGl4ZWxzOkROQSIgU2l6ZVQ9IjEiIFNpemVYPSIxIiBTaXplWT0iMSI+PFRpZmZEYXRhIEZpcnN0Qz0iMCIgRmlyc3RUPSIwIiBGaXJzdFo9IjAiIElGRD0iMCIgUGxhbmVDb3VudD0iMSI+PFVVSUQgRmlsZU5hbWU9ImZpbGU6Ly8vRjovYmlnbmV1cm9uL0JpZ05ldXJvbmdpdC9EYXRhL2dvbGQxNjZfd2lkcy8yLzI0OS8yODh4bWxyc2lvbjEuMCJlbmNvbmdGOD9PTUVuc3A6L3d3Lm9waWdTY2htL09NRS8yMTYtNiI+PEltYWdlIElEPSJOPjxQaXhlbHMgZXJUIiBJRE5BIiBTaXplPSIxIiBTaXplWD0iMSJZPSIxIj48VGlmZkRhdGEgRmlyc3RDPSIwIiBGaXJzdFQ9IjAiIFo9IjAiRD0ibmV1PSIxVUlEIEZpbWVpbGU6Ly86ZXVyb25pZ3JvdGQvOTI=
+Pipeline_Pipeline,"CellProfiler Pipeline: http://www.cellprofiler.org
+Version:4
+DateRevision:319
+GitHash:
+ModuleCount:6
+HasImagePlaneDetails:False
+
+Images:[module_num:1|svn_version:\'Unknown\'|variable_revision_number:2|show_window:False|notes:\x5B\'To begin creating your project, use the Images module to compile a list of files and/or folders that you want to analyze. You can also specify a set of rules to include only the desired files in your selected folders.\'\x5D|batch_state:array(\x5B\x5D, dtype=uint8)|enabled:True|wants_pause:False]
+    :\xff\xfe
+    Filter images?:\xff\xfeI\x00m\x00a\x00g\x00e\x00s\x00 \x00o\x00n\x00l\x00y\x00
+    Select the rule criteria:\xff\xfea\x00n\x00d\x00 \x00(\x00e\x00x\x00t\x00e\x00n\x00s\x00i\x00o\x00n\x00 \x00d\x00o\x00e\x00s\x00 \x00i\x00s\x00i\x00m\x00a\x00g\x00e\x00)\x00 \x00(\x00d\x00i\x00r\x00e\x00c\x00t\x00o\x00r\x00y\x00 \x00d\x00o\x00e\x00s\x00n\x00o\x00t\x00 \x00c\x00o\x00n\x00t\x00a\x00i\x00n\x00r\x00e\x00g\x00e\x00x\x00p\x00 \x00""\x00\x5B\x00\\\x00\\\x00\\\x00\\\x00/\x00\x5D\x00\\\x00\\\x00.\x00""\x00)\x00
+
+Metadata:[module_num:2|svn_version:\'Unknown\'|variable_revision_number:5|show_window:False|notes:\x5B\'The Metadata module optionally allows you to extract information describing your images (i.e, metadata) which will be stored along with your measurements. This information can be contained in the file name and/or location, or in an external file.\'\x5D|batch_state:array(\x5B\x5D, dtype=uint8)|enabled:True|wants_pause:False]
+    Extract metadata?:\xff\xfeN\x00o\x00
+    Metadata data type:\xff\xfeT\x00e\x00x\x00t\x00
+    Metadata types:\xff\xfe{\x00}\x00
+    Extraction method count:\xff\xfe1\x00
+    Metadata extraction method:\xff\xfeE\x00x\x00t\x00r\x00a\x00c\x00t\x00 \x00f\x00r\x00o\x00m\x00 \x00f\x00i\x00l\x00e\x00/\x00f\x00o\x00l\x00d\x00e\x00r\x00 \x00n\x00a\x00m\x00e\x00s\x00
+    Metadata source:\xff\xfeF\x00i\x00l\x00e\x00 \x00n\x00a\x00m\x00e\x00
+    Regular expression to extract from file name:\xff\xfe^\x00(\x00?\x00P\x00<\x00P\x00l\x00a\x00t\x00e\x00>\x00.\x00*\x00)\x00_\x00(\x00?\x00P\x00<\x00W\x00e\x00l\x00l\x00>\x00\x5B\x00A\x00-\x00P\x00\x5D\x00\x5B\x000\x00-\x009\x00\x5D\x00{\x002\x00}\x00)\x00_\x00s\x00(\x00?\x00P\x00<\x00S\x00i\x00t\x00e\x00>\x00\x5B\x000\x00-\x009\x00\x5D\x00)\x00_\x00w\x00(\x00?\x00P\x00<\x00C\x00h\x00a\x00n\x00n\x00e\x00l\x00N\x00u\x00m\x00b\x00e\x00r\x00>\x00\x5B\x000\x00-\x009\x00\x5D\x00)\x00
+    Regular expression to extract from folder name:\xff\xfe(\x00?\x00P\x00<\x00D\x00a\x00t\x00e\x00>\x00\x5B\x000\x00-\x009\x00\x5D\x00{\x004\x00}\x00_\x00\x5B\x000\x00-\x009\x00\x5D\x00{\x002\x00}\x00_\x00\x5B\x000\x00-\x009\x00\x5D\x00{\x002\x00}\x00)\x00$\x00
+    Extract metadata from:\xff\xfeA\x00l\x00l\x00 \x00i\x00m\x00a\x00g\x00e\x00s\x00
+    Select the filtering criteria:\xff\xfea\x00n\x00d\x00 \x00(\x00f\x00i\x00l\x00e\x00 \x00d\x00o\x00e\x00s\x00 \x00c\x00o\x00n\x00t\x00a\x00i\x00n\x00 \x00""\x00""\x00)\x00
+    Metadata file location:\xff\xfeE\x00l\x00s\x00e\x00w\x00h\x00e\x00r\x00e\x00.\x00.\x00.\x00\x7C\x00
+    Match file and image metadata:\xff\xfe\x5B\x00\x5D\x00
+    Use case insensitive matching?:\xff\xfeN\x00o\x00
+    Metadata file name:\xff\xfeN\x00o\x00n\x00e\x00
+
+NamesAndTypes:[module_num:3|svn_version:\'Unknown\'|variable_revision_number:8|show_window:False|notes:\x5B\'The NamesAndTypes module allows you to assign a meaningful name to each image by which other modules will refer to it.\'\x5D|batch_state:array(\x5B\x5D, dtype=uint8)|enabled:True|wants_pause:False]
+    Assign a name to:\xff\xfeA\x00l\x00l\x00 \x00i\x00m\x00a\x00g\x00e\x00s\x00
+    Select the image type:\xff\xfeG\x00r\x00a\x00y\x00s\x00c\x00a\x00l\x00e\x00 \x00i\x00m\x00a\x00g\x00e\x00
+    Name to assign these images:\xff\xfeD\x00N\x00A\x00
+    Match metadata:\xff\xfe\x5B\x00\x5D\x00
+    Image set matching method:\xff\xfeO\x00r\x00d\x00e\x00r\x00
+    Set intensity range from:\xff\xfeI\x00m\x00a\x00g\x00e\x00 \x00m\x00e\x00t\x00a\x00d\x00a\x00t\x00a\x00
+    Assignments count:\xff\xfe1\x00
+    Single images count:\xff\xfe0\x00
+    Maximum intensity:\xff\xfe2\x005\x005\x00.\x000\x00
+    Process as 3D?:\xff\xfeN\x00o\x00
+    Relative pixel spacing in X:\xff\xfe1\x00.\x000\x00
+    Relative pixel spacing in Y:\xff\xfe1\x00.\x000\x00
+    Relative pixel spacing in Z:\xff\xfe1\x00.\x000\x00
+    Select the rule criteria:\xff\xfea\x00n\x00d\x00 \x00(\x00f\x00i\x00l\x00e\x00 \x00d\x00o\x00e\x00s\x00 \x00c\x00o\x00n\x00t\x00a\x00i\x00n\x00 \x00""\x00""\x00)\x00
+    Name to assign these images:\xff\xfeD\x00N\x00A\x00
+    Name to assign these objects:\xff\xfeC\x00e\x00l\x00l\x00
+    Select the image type:\xff\xfeG\x00r\x00a\x00y\x00s\x00c\x00a\x00l\x00e\x00 \x00i\x00m\x00a\x00g\x00e\x00
+    Set intensity range from:\xff\xfeI\x00m\x00a\x00g\x00e\x00 \x00m\x00e\x00t\x00a\x00d\x00a\x00t\x00a\x00
+    Maximum intensity:\xff\xfe2\x005\x005\x00.\x000\x00
+
+Groups:[module_num:4|svn_version:\'Unknown\'|variable_revision_number:2|show_window:False|notes:\x5B\'The Groups module optionally allows you to split your list of images into image subsets (groups) which will be processed independently of each other. Examples of groupings include screening batches, microtiter plates, time-lapse movies, etc.\'\x5D|batch_state:array(\x5B\x5D, dtype=uint8)|enabled:True|wants_pause:False]
+    Do you want to group your images?:\xff\xfeN\x00o\x00
+    grouping metadata count:\xff\xfe1\x00
+    Metadata category:\xff\xfeN\x00o\x00n\x00e\x00
+
+MeasureImageQuality:[module_num:5|svn_version:\'Unknown\'|variable_revision_number:5|show_window:True|notes:\x5B\x5D|batch_state:array(\x5B\x5D, dtype=uint8)|enabled:True|wants_pause:False]
+    Calculate metrics for which images?:\xff\xfeA\x00l\x00l\x00 \x00l\x00o\x00a\x00d\x00e\x00d\x00 \x00i\x00m\x00a\x00g\x00e\x00s\x00
+    Image count:\xff\xfe1\x00
+    Scale count:\xff\xfe1\x00
+    Threshold count:\xff\xfe1\x00
+    Select the images to measure:\xff\xfe
+    Include the image rescaling value?:\xff\xfeY\x00e\x00s\x00
+    Calculate blur metrics?:\xff\xfeY\x00e\x00s\x00
+    Spatial scale for blur measurements:\xff\xfe2\x000\x00
+    Calculate saturation metrics?:\xff\xfeY\x00e\x00s\x00
+    Calculate intensity metrics?:\xff\xfeY\x00e\x00s\x00
+    Calculate thresholds?:\xff\xfeY\x00e\x00s\x00
+    Use all thresholding methods?:\xff\xfeN\x00o\x00
+    Select a thresholding method:\xff\xfeO\x00t\x00s\x00u\x00
+    Typical fraction of the image covered by objects:\xff\xfe0\x00.\x001\x00
+    Two-class or three-class thresholding?:\xff\xfeT\x00w\x00o\x00 \x00c\x00l\x00a\x00s\x00s\x00e\x00s\x00
+    Minimize the weighted variance or the entropy?:\xff\xfeW\x00e\x00i\x00g\x00h\x00t\x00e\x00d\x00 \x00v\x00a\x00r\x00i\x00a\x00n\x00c\x00e\x00
+    Assign pixels in the middle intensity class to the foreground or the background?:\xff\xfeF\x00o\x00r\x00e\x00g\x00r\x00o\x00u\x00n\x00d\x00
+
+ExportToSpreadsheet:[module_num:6|svn_version:\'Unknown\'|variable_revision_number:12|show_window:True|notes:\x5B\x5D|batch_state:array(\x5B\x5D, dtype=uint8)|enabled:True|wants_pause:False]
+    Select the column delimiter:\xff\xfeC\x00o\x00m\x00m\x00a\x00 \x00(\x00""\x00,\x00""\x00)\x00
+    Add image metadata columns to your object data file?:\xff\xfeN\x00o\x00
+    Select the measurements to export:\xff\xfeN\x00o\x00
+    Calculate the per-image mean values for object measurements?:\xff\xfeN\x00o\x00
+    Calculate the per-image median values for object measurements?:\xff\xfeN\x00o\x00
+    Calculate the per-image standard deviation values for object measurements?:\xff\xfeN\x00o\x00
+    Output file location:\xff\xfeE\x00l\x00s\x00e\x00w\x00h\x00e\x00r\x00e\x00.\x00.\x00.\x00\x7C\x00F\x00\x3A\x00\\\x00\\\x00b\x00i\x00g\x00n\x00e\x00u\x00r\x00o\x00n\x00\\\x00\\\x00B\x00i\x00g\x00N\x00e\x00u\x00r\x00o\x00n\x00g\x00i\x00t\x00\\\x00\\\x00D\x00a\x00t\x00a\x00\\\x00\\\x00g\x00o\x00l\x00d\x001\x006\x006\x00_\x00w\x00i\x00d\x00s\x00
+    Create a GenePattern GCT file?:\xff\xfeN\x00o\x00
+    Select source of sample row name:\xff\xfeM\x00e\x00t\x00a\x00d\x00a\x00t\x00a\x00
+    Select the image to use as the identifier:\xff\xfeN\x00o\x00n\x00e\x00
+    Select the metadata to use as the identifier:\xff\xfeN\x00o\x00n\x00e\x00
+    Export all measurement types?:\xff\xfeY\x00e\x00s\x00
+    Press button to select measurements:\xff\xfe
+    Representation of Nan/Inf:\xff\xfeN\x00a\x00N\x00
+    Add a prefix to file names?:\xff\xfeY\x00e\x00s\x00
+    Filename prefix:\xff\xfeI\x00m\x00a\x00g\x00e\x00Q\x00_\x00p\x00r\x00o\x00j\x00
+    Overwrite existing files without warning?:\xff\xfeN\x00o\x00
+    Data to export:\xff\xfeD\x00o\x00 \x00n\x00o\x00t\x00 \x00u\x00s\x00e\x00
+    Combine these object measurements with those of the previous object?:\xff\xfeN\x00o\x00
+    File name:\xff\xfeD\x00A\x00T\x00A\x00.\x00c\x00s\x00v\x00
+    Use the object name for the file name?:\xff\xfeY\x00e\x00s\x00
+"
+Run_Timestamp,2020-03-11T02:44:53.464000
